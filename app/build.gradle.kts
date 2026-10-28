@@ -3,6 +3,9 @@ import java.util.Properties
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android") }
 val targetAbis = providers.gradleProperty("abis").orElse("arm64-v8a").get().split(",")
 require(targetAbis.all { it in setOf("arm64-v8a", "x86_64") })
+val apkVersionName = providers.gradleProperty("apkVersionName").orElse("0.1.0").get()
+val apkVersionCode = providers.gradleProperty("apkVersionCode").orElse("1").get().toInt()
+require(apkVersionName.isNotBlank() && apkVersionCode in 1..2100000000) { "Invalid APK version" }
 val signingFile = rootProject.file(".signing/release.properties")
 val signingProperties = Properties().apply {
     if (signingFile.isFile) signingFile.inputStream().use { load(it) }
@@ -23,8 +26,8 @@ android {
         applicationId = "com.yk.clash"
         minSdk = 33
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = apkVersionCode
+        versionName = apkVersionName
         ndk { abiFilters += targetAbis }
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

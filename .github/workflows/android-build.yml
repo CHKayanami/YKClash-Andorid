@@ -1,6 +1,32 @@
 name: Build Android APK
 
 on:
+  workflow_call:
+    inputs:
+      build_type:
+        type: string
+        default: release
+      abis:
+        type: string
+        default: arm64-v8a
+      version_name:
+        type: string
+        default: ''
+      version_code:
+        type: string
+        default: ''
+      artifact_name:
+        type: string
+        default: ''
+    secrets:
+      ANDROID_KEYSTORE_BASE64:
+        required: false
+      ANDROID_STORE_PASSWORD:
+        required: false
+      ANDROID_KEY_ALIAS:
+        required: false
+      ANDROID_KEY_PASSWORD:
+        required: false
   workflow_dispatch:
     inputs:
       build_type:
@@ -23,7 +49,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: android-build-${{ github.ref }}-${{ inputs.build_type }}-${{ inputs.abis }}
+  group: android-build-${{ github.workflow }}-${{ github.ref }}-${{ inputs.build_type }}-${{ inputs.abis }}
   cancel-in-progress: true
 
 jobs:
@@ -34,6 +60,8 @@ jobs:
       CI: 'true'
       BUILD_TYPE: ${{ inputs.build_type }}
       TARGET_ABIS: ${{ inputs.abis }}
+      APK_VERSION_NAME: ${{ inputs.version_name }}
+      APK_VERSION_CODE: ${{ inputs.version_code }}
       ANDROID_HOME: ${{ github.workspace }}/.android-sdk
       ANDROID_SDK_ROOT: ${{ github.workspace }}/.android-sdk
       ANDROID_NDK_HOME: ${{ github.workspace }}/.android-sdk/ndk/27.0.12077973
@@ -43,6 +71,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - name: Validate build options
+        run: |
+          case "$BUILD_TYPE" in debug|release) ;; *) echo "Unsupported build type" >&2; exit 1 ;; esac
+          case "$TARGET_ABIS" in arm64-v8a|x86_64|arm64-v8a,x86_64) ;; *) echo "Unsupported ABIs" >&2; exit 1 ;; esac
+          if [[ -n "$APK_VERSION_NAME" || -n "$APK_VERSION_CODE" ]]; then
+            [[ -n "$APK_VERSION_NAME" && "$APK_VERSION_CODE" =~ ^[1-9][0-9]*$ ]]
+          fi
 
       - name: Prepare release keystore
         if: inputs.build_type == 'release'
@@ -116,7 +152,12 @@ jobs:
 
       - name: Build debug APK
         if: inputs.build_type == 'debug'
-        run: mise exec -- gradle --no-daemon :app:assembleDebug "-Pabis=$TARGET_ABIS"
+        run: |
+          version_args=()
+          if [[ -n "$APK_VERSION_NAME" ]]; then
+            version_args=("-PapkVersionName=$APK_VERSION_NAME" "-PapkVersionCode=$APK_VERSION_CODE")
+          fi
+          mise exec -- gradle --no-daemon :app:assembleDebug "-Pabis=$TARGET_ABIS" "${version_args[@]}"
 
       - name: Build signed release APK
         if: inputs.build_type == 'release'
@@ -128,7 +169,11 @@ jobs:
         run: |
           mise exec -- keytool -list -storetype PKCS12 -keystore "$ANDROID_KEYSTORE_PATH" \
             -storepass:env ANDROID_STORE_PASSWORD -alias "$ANDROID_KEY_ALIAS" >/dev/null
-          mise exec -- gradle --no-daemon :app:assembleRelease "-Pabis=$TARGET_ABIS"
+          version_args=()
+          if [[ -n "$APK_VERSION_NAME" ]]; then
+            version_args=("-PapkVersionName=$APK_VERSION_NAME" "-PapkVersionCode=$APK_VERSION_CODE")
+          fi
+          mise exec -- gradle --no-daemon :app:assembleRelease "-Pabis=$TARGET_ABIS" "${version_args[@]}"
 
       - name: Verify signature and collect APK
         run: |
@@ -143,7 +188,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: YKClash-${{ inputs.build_type }}-${{ inputs.abis }}-${{ github.run_number }}
+          name: ${{ inputs.artifact_name || format('YKClash-{0}-{1}-{2}', inputs.build_type, inputs.abis, github.run_number) }}
           path: dist/
           if-no-files-found: error
           retention-days: 14

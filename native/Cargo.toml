@@ -7,6 +7,9 @@ edition = "2024"
 name = "ykcore"
 crate-type = ["cdylib"]
 
+[profile.release]
+lto = "thin"
+
 [dependencies]
 clash-lib = { path = "../../clash-rs/clash-lib", default-features = false, features = ["standard", "tun", "shadowsocks", "tuic", "ssh", "shadowquic", "zero_copy"] }
 jni = "0.21"

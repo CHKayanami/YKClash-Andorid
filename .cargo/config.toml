@@ -1,0 +1,5 @@
+[build]
+rustflags = ["--cfg", "tokio_unstable"]
+[env]
+RUSTC_BOOTSTRAP = "1"
+SENTRY_DSN = "PLEASE DEFINE AT COMPILE TIME"

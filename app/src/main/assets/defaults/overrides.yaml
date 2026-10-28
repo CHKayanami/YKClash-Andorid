@@ -1,0 +1,102 @@
+# Built-in global override defaults.
+dns2: {"enable": true, "ipv6": true, "use-hosts": true, "hosts": {}, "hosts-files": [], "default-nameserver": ["223.5.5.5"], "proxy-server-nameserver": [], "optimistic-cache-ttl": 0, "stale-cache-retention": 3600, "cache-capacity": 4096, "upstreams": [{"tag": "direct-dns", "type": "remote", "servers": ["223.5.5.5"]}, {"tag": "proxy-dns", "type": "fakeip", "inet4-range": "198.18.0.1/16", "inet6-range": "fc00::/18", "ttl": 1}], "routing": {"request": [{"invert": false, "rule-set": ["ads"], "action": "reject", "reject-code": "nodata"}, {"invert": false, "domain": ["+.lan", "+.local"], "rule-set": ["geosite-cn", "apple-cn"], "upstream": "direct-dns"}, {"invert": false, "query-type": ["HTTPS"], "action": "reject", "reject-code": "nodata"}, {"fallback": "proxy-dns"}], "response": []}}
+sniffer: {"enable": true, "force-dns-mapping": true, "parse-pure-ip": true, "sniff": {"HTTP": {"ports": [80, 8080], "override-destination": false}, "TLS": {"ports": [443, 8443], "override-destination": false}, "QUIC": {"ports": [443, 8443], "override-destination": false}}, "override-destination": false}
+rule-providers: {"ai": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ai.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/ai.mrs"}, "ads": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ads.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/ads.mrs"}, "microsoft-cn": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/microsoft-cn.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/microsoft-cn.mrs"}, "apple-cn": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/apple-cn.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/apple-cn.mrs"}, "google-lite": {"type": "http", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta/geo-lite/geosite/google.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/google-lite.mrs"}, "youtube": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/youtube.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/youtube.mrs"}, "media": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/media.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/media.mrs"}, "telegramip": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/telegramip.mrs", "format": "mrs", "behavior": "ipcidr", "interval": 86400, "path": "rule_set/telegramip.mrs"}, "geosite-cn": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cn.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/geosite-cn.mrs"}, "cnip": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cnip.mrs", "format": "mrs", "behavior": "ipcidr", "interval": 86400, "path": "rule_set/cnip.mrs"}, "fakeipfilter": {"type": "http", "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/fakeip-filter.mrs", "format": "mrs", "behavior": "domain", "interval": 86400, "path": "rule_set/fakeipfilter.mrs"}}
+mmdb: "Country.mmdb"
+mmdb-download-url: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@mihomo-geodata/Country.mmdb"
+geosite: "geosite.dat"
+geosite-download-url: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@mihomo-geodata/geosite-lite.dat"
+asn-mmdb: "Country-ASN.mmdb"
+asn-mmdb-download-url: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@mihomo-geodata/Country-ASN.mmdb"
+proxy-groups:
+  - name: 🚀 节点选择
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+  - name: ♻️ 自动选择
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    proxies:
+    include-all: true
+  - name: 🌍 国外媒体
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - ♻️ 自动选择
+      - 🎯 全球直连
+    include-all: true
+  - name: 📲 电报信息
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🎯 全球直连
+    include-all: true
+  - name: Ⓜ️ 微软服务
+    type: select
+    proxies:
+      - 🎯 全球直连
+      - 🚀 节点选择
+    include-all: true
+  - name: 📹 油管视频
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🎯 全球直连
+    include-all: true
+  - name: AI
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🎯 全球直连
+    include-all: true
+  - name: 🇬 谷歌服务
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🎯 全球直连
+    include-all: true
+  - name: 🍎 苹果服务
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🎯 全球直连
+    include-all: true
+  - name: 🎯 全球直连
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 节点选择
+      - ♻️ 自动选择
+  - name: 🛑 全球拦截
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+  - name: 🍃 应用净化
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+  - name: 🐟 漏网之鱼
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - 🎯 全球直连
+      - ♻️ 自动选择
+    include-all: true
+rules:
+  - "RULE-SET,ads,\U0001F343 应用净化"
+  - RULE-SET,microsoft-cn,Ⓜ️ 微软服务
+  - "RULE-SET,apple-cn,\U0001F34E 苹果服务"
+  - RULE-SET,ai,AI
+  - "RULE-SET,google-lite,\U0001F1EC 谷歌服务"
+  - "RULE-SET,youtube,\U0001F4F9 油管视频"
+  - "RULE-SET,media,\U0001F30D 国外媒体"
+  - "RULE-SET,telegramip,\U0001F4F2 电报信息,no-resolve"
+  - "RULE-SET,geosite-cn,\U0001F3AF 全球直连"
+  - RULE-SET,cnip,DIRECT
+  - "MATCH,\U0001F41F 漏网之鱼"

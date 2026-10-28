@@ -1,0 +1,13 @@
+/.gradle/
+/local.properties
+**/build/
+/native/target/
+/app/src/main/jniLibs/
+*.iml
+.idea/
+/.android-sdk/
+/.signing/
+/dist/
+/docs/
+/.kotlin/
+/artwork/

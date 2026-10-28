@@ -1,0 +1,24 @@
+[package]
+name = "yk-android-core"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "ykcore"
+crate-type = ["cdylib"]
+
+[dependencies]
+clash-lib = { path = "../../clash-rs/clash-lib", default-features = false, features = ["standard", "tun", "shadowsocks", "tuic", "ssh", "shadowquic", "zero_copy"] }
+jni = "0.21"
+serde_yaml = "0.9"
+serde_json = "1"
+tokio-util = "0.7"
+tokio = { version = "1", features = ["rt-multi-thread", "sync"] }
+maxminddb = "0.32"
+prost = "0.14"
+
+[dev-dependencies]
+tracing = "0.1"
+
+[patch.crates-io]
+boring-sys = { git = "https://github.com/CHKayanami/boring-sys", rev = "d35cf29760a44f3c45a1199451aeca83bbae1d82" }

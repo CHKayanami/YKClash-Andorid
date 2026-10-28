@@ -1,0 +1,154 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: APK type
+        type: choice
+        default: release
+        options:
+          - release
+          - debug
+      abis:
+        description: Target architectures
+        type: choice
+        default: arm64-v8a
+        options:
+          - arm64-v8a
+          - x86_64
+          - arm64-v8a,x86_64
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-build-${{ github.ref }}-${{ inputs.build_type }}-${{ inputs.abis }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      CI: 'true'
+      BUILD_TYPE: ${{ inputs.build_type }}
+      TARGET_ABIS: ${{ inputs.abis }}
+      ANDROID_HOME: ${{ github.workspace }}/.android-sdk
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/.android-sdk
+      ANDROID_NDK_HOME: ${{ github.workspace }}/.android-sdk/ndk/27.0.12077973
+
+    steps:
+      - name: Checkout application
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Prepare release keystore
+        if: inputs.build_type == 'release'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+          required = ['ANDROID_KEYSTORE_BASE64', 'ANDROID_STORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD']
+          missing = [name for name in required if not os.environ.get(name)]
+          if missing:
+              raise SystemExit('Missing GitHub Actions secrets: ' + ', '.join(missing))
+          try:
+              data = base64.b64decode(''.join(os.environ['ANDROID_KEYSTORE_BASE64'].split()), validate=True)
+          except ValueError:
+              raise SystemExit('ANDROID_KEYSTORE_BASE64 is not valid Base64.')
+          if not data:
+              raise SystemExit('The decoded keystore is empty.')
+          destination = Path(os.environ['RUNNER_TEMP']) / 'ykclash-release.p12'
+          with destination.open('xb') as output:
+              os.chmod(destination, 0o600)
+              output.write(data)
+          PY
+
+      - name: Checkout pinned kernel
+        run: python3 scripts/checkout-core.py
+
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build clang libclang-dev pkg-config
+
+      - name: Set up project toolchains
+        uses: jdx/mise-action@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '12266719'
+          packages: 'platform-tools platforms;android-35 build-tools;34.0.0 ndk;27.0.12077973'
+          log-accepted-android-sdk-licenses: false
+
+      - name: Cache dependency downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin/cargo-ndk
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: android-dependencies-${{ runner.os }}-${{ hashFiles('native/Cargo.lock', 'mise.toml', 'core-version.json', 'scripts/build-core.sh', '**/*.gradle.kts') }}
+          restore-keys: |
+            android-dependencies-${{ runner.os }}-
+
+      - name: Install cargo-ndk
+        run: |
+          if ! command -v cargo-ndk >/dev/null; then
+            mise exec -- cargo install cargo-ndk --version 4.1.2 --locked
+          fi
+
+      - name: Build native core
+        run: |
+          IFS=',' read -r -a target_abis <<< "$TARGET_ABIS"
+          mise exec -- bash scripts/build-core.sh "${target_abis[@]}"
+
+      - name: Build debug APK
+        if: inputs.build_type == 'debug'
+        run: mise exec -- gradle --no-daemon :app:assembleDebug "-Pabis=$TARGET_ABIS"
+
+      - name: Build signed release APK
+        if: inputs.build_type == 'release'
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/ykclash-release.p12
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          mise exec -- keytool -list -storetype PKCS12 -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass:env ANDROID_STORE_PASSWORD -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          mise exec -- gradle --no-daemon :app:assembleRelease "-Pabis=$TARGET_ABIS"
+
+      - name: Verify signature and collect APK
+        run: |
+          apk="app/build/outputs/apk/$BUILD_TYPE/app-$BUILD_TYPE.apk"
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose "$apk"
+          mkdir -p dist
+          cp "$apk" "dist/YKClash-$BUILD_TYPE-${TARGET_ABIS//,/+}.apk"
+          cp core-version.json dist/core-version.json
+          cp "app/build/outputs/apk/$BUILD_TYPE/output-metadata.json" dist/output-metadata.json
+          (cd dist && sha256sum *.apk > SHA256SUMS)
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: YKClash-${{ inputs.build_type }}-${{ inputs.abis }}-${{ github.run_number }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Remove temporary signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/ykclash-release.p12"

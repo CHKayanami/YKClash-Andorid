@@ -1,0 +1,8 @@
+<resources>
+    <string name="transfer_rate">%1$s/s</string>
+    <string name="connection_summary">%1$d 个活动连接  ·  ↑ %2$s  ↓ %3$s</string>
+    <string name="connection_endpoint">%1$s:%2$s</string>
+    <string name="connection_rule">%1$s  ·  %2$s</string>
+    <string name="connection_chain">出站  %1$s</string>
+    <string name="connection_traffic">↑ %1$s     ↓ %2$s</string>
+</resources>

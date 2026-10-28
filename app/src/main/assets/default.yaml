@@ -1,0 +1,223 @@
+mode: rule
+log-level: warning
+ipv6: true
+
+proxies: []
+
+proxy-groups:
+  - name: "\U0001F680 节点选择"
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+  - name: ♻️ 自动选择
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    proxies:
+    include-all: true
+  - name: "\U0001F30D 国外媒体"
+    type: select
+    proxies:
+      - "\U0001F680 节点选择"
+      - ♻️ 自动选择
+      - "\U0001F3AF 全球直连"
+    include-all: true
+  - name: "\U0001F4F2 电报信息"
+    type: select
+    proxies:
+      - "\U0001F680 节点选择"
+      - "\U0001F3AF 全球直连"
+    include-all: true
+  - name: Ⓜ️ 微软服务
+    type: select
+    proxies:
+      - "\U0001F3AF 全球直连"
+      - "\U0001F680 节点选择"
+    include-all: true
+  - name: "\U0001F4F9 油管视频"
+    type: select
+    proxies:
+      - "\U0001F680 节点选择"
+      - "\U0001F3AF 全球直连"
+    include-all: true
+  - name: AI
+    type: select
+    proxies:
+      - "\U0001F680 节点选择"
+      - "\U0001F3AF 全球直连"
+    include-all: true
+  - name: "\U0001F1EC 谷歌服务"
+    type: select
+    proxies:
+      - "\U0001F680 节点选择"
+      - "\U0001F3AF 全球直连"
+    include-all: true
+  - name: "\U0001F34E 苹果服务"
+    type: select
+    proxies:
+      - "\U0001F680 节点选择"
+      - "\U0001F3AF 全球直连"
+    include-all: true
+  - name: "\U0001F3AF 全球直连"
+    type: select
+    proxies:
+      - DIRECT
+      - "\U0001F680 节点选择"
+      - ♻️ 自动选择
+  - name: "\U0001F6D1 全球拦截"
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+  - name: "\U0001F343 应用净化"
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+  - name: "\U0001F41F 漏网之鱼"
+    type: select
+    proxies:
+      - "\U0001F680 节点选择"
+      - "\U0001F3AF 全球直连"
+      - ♻️ 自动选择
+    include-all: true
+sniffer:
+  enable: true
+  force-dns-mapping: true
+rules:
+  - "RULE-SET,ads,\U0001F343 应用净化"
+  - RULE-SET,microsoft-cn,Ⓜ️ 微软服务
+  - "RULE-SET,apple-cn,\U0001F34E 苹果服务"
+  - RULE-SET,ai,AI
+  - "RULE-SET,google-lite,\U0001F1EC 谷歌服务"
+  - "RULE-SET,youtube,\U0001F4F9 油管视频"
+  - "RULE-SET,media,\U0001F30D 国外媒体"
+  - "RULE-SET,telegramip,\U0001F4F2 电报信息,no-resolve"
+  - "RULE-SET,geosite-cn,\U0001F3AF 全球直连"
+  - RULE-SET,cnip,DIRECT
+  - "MATCH,\U0001F41F 漏网之鱼"
+rule-providers:
+  cnip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cnip.mrs"
+    path: rule_set/cnip.mrs
+    interval: 86400
+  ads:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ads.mrs"
+    path: rule_set/ads.mrs
+    interval: 86400
+  microsoft-cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/microsoft-cn.mrs"
+    path: rule_set/microsoft-cn.mrs
+    interval: 86400
+  apple-cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/apple-cn.mrs"
+    path: rule_set/apple-cn.mrs
+    interval: 86400
+  google-lite:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta/geo-lite/geosite/google.mrs"
+    path: rule_set/google-lite.mrs
+    interval: 86400
+  youtube:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/youtube.mrs"
+    path: rule_set/youtube.mrs
+    interval: 86400
+  media:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/media.mrs"
+    path: rule_set/media.mrs
+    interval: 86400
+  telegramip:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/telegramip.mrs"
+    path: rule_set/telegramip.mrs
+    interval: 86400
+  geosite-cn:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cn.mrs"
+    path: rule_set/geosite-cn.mrs
+    interval: 86400
+  ai:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ai.mrs"
+    path: rule_set/ai.mrs
+    interval: 86400
+  fakeipfilter:
+    type: http
+    behavior: domain
+    format: mrs
+    url: "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/fakeip-filter.mrs"
+    path: rule_set/fakeipfilter.mrs
+    interval: 86400
+dns2:
+  enable: true
+  ipv6: true
+  use-hosts: true
+  default-nameserver:
+    - 223.5.5.5
+  optimistic-cache-ttl: 0
+  stale-cache-retention: 3600
+  cache-capacity: 4096
+  upstreams:
+    - tag: direct-dns
+      type: remote
+      servers:
+        - 223.5.5.5
+    - tag: proxy-dns
+      type: fakeip
+      inet4-range: 198.18.0.1/16
+      inet6-range: fc00::/18
+      ttl: 1
+  routing:
+    request:
+      - invert: false
+        domain:
+          - +.xs.alibabachengdun.com
+          - +.jddebug.com
+        rule-set:
+          - ads
+        action: reject
+        reject-code: nodata
+      - invert: false
+        rule-set:
+          - geosite-cn
+          - apple-cn
+          - fakeipfilter
+        upstream: direct-dns
+      - invert: false
+        query-type:
+          - HTTPS
+        action: reject
+        reject-code: nodata
+      - fallback: proxy-dns
+quic: false
+profile:
+  store-selected: true

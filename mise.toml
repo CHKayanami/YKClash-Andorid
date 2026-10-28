@@ -1,0 +1,21 @@
+[tools]
+java = "temurin-17.0.21+9"
+gradle = "8.9"
+rust = "1.99.1"
+
+[env]
+ANDROID_HOME = "{{config_root}}/.android-sdk"
+ANDROID_SDK_ROOT = "{{config_root}}/.android-sdk"
+ANDROID_NDK_HOME = "{{config_root}}/.android-sdk/ndk/27.0.12077973"
+
+[tasks."android:sdk"]
+description = "Install the Android SDK and NDK after accepting their licenses"
+run = 'sdkmanager --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-35" "build-tools;34.0.0" "ndk;27.0.12077973"'
+
+[tasks."core:build"]
+description = "Build clash-rs Android libraries"
+run = "bash scripts/build-core.sh"
+
+[tasks."app:build"]
+description = "Build the debug APK"
+run = "gradle assembleDebug"

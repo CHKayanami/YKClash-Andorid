@@ -1,0 +1,97 @@
+{
+  "ai": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ai.mrs",
+    "sha256": "41bc70ded8a1606603e6a268d0d83d89361507b82105b520a00294b5d7eebd82",
+    "count": 213,
+    "previous": [
+      "5121ef889a37dedf0c64be29b1b8013f1b68f785e78c43f3884168ae4709984b"
+    ],
+    "updatedAt": "2026-10-27T07:09:51.067880+00:00"
+  },
+  "ads": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/ads.mrs",
+    "sha256": "ec759d4c08bfc4408da5ca425d464789d15f40e26fbae5af46d06ccdb101bb35",
+    "count": 105192,
+    "previous": [
+      "6f564c7bd0d71e03ed108ddcfd53ea3f2e3b17f88518d176ab60a84a7603b06f"
+    ],
+    "updatedAt": "2026-10-27T07:09:52.645413+00:00"
+  },
+  "microsoft-cn": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/microsoft-cn.mrs",
+    "sha256": "ba61438136448454859e2eda5e1c0500a2415e6f794c4b0cdc35d2353b0bc009",
+    "count": 189,
+    "previous": [
+      "45602520babfec248be6488382c1eefca48dce150ee41f9c0801348a898f309f"
+    ],
+    "updatedAt": "2026-10-27T07:09:51.089475+00:00"
+  },
+  "apple-cn": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/apple-cn.mrs",
+    "sha256": "32130be606e13af00d3e266bf543f8a63be473fc99ea43881f5e076e2caf452d",
+    "count": 244,
+    "previous": [
+      "e5c13275f2e9a3bb1be8f4a5a4796e3d6c34b6abd7f53ef9a09893c3204c063d"
+    ],
+    "updatedAt": "2026-10-27T07:09:51.939627+00:00"
+  },
+  "google-lite": {
+    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta/geo-lite/geosite/google.mrs",
+    "sha256": "9978b4375c9a584a091ee78913fa28943214d63f169e8960cc593c086e5cd3de",
+    "count": 685,
+    "previous": [
+      "9978b4375c9a584a091ee78913fa28943214d63f169e8960cc593c086e5cd3de"
+    ],
+    "updatedAt": "2026-10-27T07:09:51.816731+00:00"
+  },
+  "youtube": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/youtube.mrs",
+    "sha256": "83d0652fe50bbaaca0e48eca1609a6392067125de545619e91dd9390d885d093",
+    "count": 180,
+    "previous": [
+      "83d0652fe50bbaaca0e48eca1609a6392067125de545619e91dd9390d885d093"
+    ],
+    "updatedAt": "2026-10-27T07:09:52.586913+00:00"
+  },
+  "media": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/media.mrs",
+    "sha256": "433a372525583f0a54124e6e95866851c5f55a9a967a0c769b69bffa714fbfbe",
+    "count": 1283,
+    "previous": [
+      "433a372525583f0a54124e6e95866851c5f55a9a967a0c769b69bffa714fbfbe"
+    ],
+    "updatedAt": "2026-10-27T07:09:53.365034+00:00"
+  },
+  "telegramip": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/telegramip.mrs",
+    "sha256": "d121af95b9aeca3d8c29b2112d5e6685b2a6716383df8ae31b5fbb3408c527b3",
+    "count": 12,
+    "previous": [
+      "d121af95b9aeca3d8c29b2112d5e6685b2a6716383df8ae31b5fbb3408c527b3"
+    ],
+    "updatedAt": "2026-10-27T07:09:53.436344+00:00"
+  },
+  "geosite-cn": {
+    "url": "https://raw.githubusercontent.com/juewuy/ShellCrash/update/bin/geodata/mrs_geosite_cn.mrs",
+    "sha256": "69ac2b1351e864bd87696a2e8eef67dfbc1dd39dbc5e277dbec250df002b0c91",
+    "count": 109614,
+    "previous": [
+      "5d9f2c3628a60e5cd15d8f411c5f788fd9682646cb453431e7f79cbd58088b33"
+    ],
+    "updatedAt": "2026-10-27T07:09:54.459484+00:00"
+  },
+  "cnip": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cnip.mrs",
+    "sha256": "c4ea114cb75f102b824082221b0de2ece1146dbb075b97c974ee8728094e2f78",
+    "count": 9809,
+    "previous": [],
+    "updatedAt": "2026-10-27T15:28:09.996969+00:00"
+  },
+  "fakeipfilter": {
+    "url": "https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/fakeip-filter.mrs",
+    "sha256": "21febacc3b70a7de5cf7bbb945157eab7c7500421e59baa3982c3f9ba9bdfa31",
+    "count": 557,
+    "previous": [],
+    "updatedAt": "2026-10-28T03:08:27.104505+00:00"
+  }
+}

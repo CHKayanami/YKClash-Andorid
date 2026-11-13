@@ -84,12 +84,12 @@ fn respond(env: &mut JNIEnv, result: Result<String, String>) -> jstring {
 
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_yk_clash_NativeCore_previewConfig(
-    mut env: JNIEnv, _this: JObject, raw: JString, mode: JString,
+    mut env: JNIEnv, _this: JObject, raw: JString, mode: JString, mtu: jni::sys::jint,
 ) -> jstring {
     let result = (|| -> Result<String, String> {
         let raw: String = env.get_string(&raw).map_err(|e| e.to_string())?.into();
         let mode: String = env.get_string(&mode).map_err(|e| e.to_string())?.into();
-        let network: serde_json::Value = serde_json::from_str(&super::network_config(&raw, &mode)?).map_err(|e| e.to_string())?;
+        let network: serde_json::Value = serde_json::from_str(&super::network_config(&raw, &mode, mtu)?).map_err(|e| e.to_string())?;
         let yaml = super::prepare(network["config"].as_str().ok_or("配置解析失败")?, Some(0), "<每次连接时自动生成>")?;
         Ok(format!("# 待连接预览：fd://0 是待分配的 Android VPN 文件描述符占位值。\n{yaml}"))
     })();

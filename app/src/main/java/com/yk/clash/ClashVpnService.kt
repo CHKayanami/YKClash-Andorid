@@ -102,8 +102,9 @@ class ClashVpnService : VpnService() {
                 val mode = networkPrefs.getString("ipv6", "profile") ?: "profile"
                 val overrides = GlobalOverrideStore(this)
                 val merged = overrides.resolve(store.read(profile))
+                val mtu = NetworkSettings.mtu(this)
                 overrides.installBundledRules(merged)
-                val network = JSONObject(NativeCore.networkConfig(merged, mode))
+                val network = JSONObject(NativeCore.networkConfig(merged, mode, mtu))
                 val ipv6 = network.getBoolean("ipv6")
                 val config = network.getString("config")
                 val routingMode = networkPrefs.getString("appRoutingMode", "all") ?: "all"
@@ -135,7 +136,7 @@ class ClashVpnService : VpnService() {
                 CoreLogCollector.start(applicationContext, secret)
                 // Activate VPN routing only after core resources and its API are ready.
                 val builder = Builder().setSession("YKClash · ${profile.name}")
-                    .setMtu(1500).addAddress("172.19.0.1", 30).addRoute("0.0.0.0", 0)
+                    .setMtu(mtu).addAddress("172.19.0.1", 30).addRoute("0.0.0.0", 0)
                     .addDnsServer("172.19.0.2")
                     .setBlocking(false)
                 appRouting.allowed.forEach { builder.addAllowedApplication(it) }

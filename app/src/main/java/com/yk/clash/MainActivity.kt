@@ -6,6 +6,9 @@ import android.view.WindowInsetsController
 import com.yk.clash.nodes.NodeActivity
 import com.yk.clash.editor.GlobalOverrideStore
 import com.yk.clash.editor.ConfigEditorActivity
+import com.yk.clash.editor.FormDialog
+import com.yk.clash.editor.FormField
+import com.yk.clash.editor.FieldKind
 import java.text.DateFormat
 import java.util.Date
 import android.provider.Settings
@@ -414,7 +417,7 @@ class MainActivity : Activity() {
             val profile = store.selected() ?: error("请先导入并选择配置")
             val merged = GlobalOverrideStore(this).resolve(store.read(profile))
             val mode = getSharedPreferences("network", MODE_PRIVATE).getString("ipv6", "profile") ?: "profile"
-            val generated = JSONObject(NativeCore.networkConfig(merged, mode)).getString("config")
+            val generated = JSONObject(NativeCore.networkConfig(merged, mode, NetworkSettings.mtu(this))).getString("config")
             val document = JSONObject(NativeCore.convertYamlMapping(generated, false))
             profile.id to NodeAvailability.hasNodes(document)
         }, onFailure = { preparingVpn = false }) { (profileId, hasNodes) ->
@@ -616,6 +619,18 @@ class MainActivity : Activity() {
 
         }
         val networkPrefs = getSharedPreferences("network", MODE_PRIVATE)
+        card("网络设置", "修改后重新连接生效。") {
+            addView(button("MTU · ${NetworkSettings.mtu(this@MainActivity)}") {
+                FormDialog.show(this@MainActivity, ui, "网络设置",
+                    JSONObject().put("mtu", NetworkSettings.mtu(this@MainActivity)),
+                    listOf(FormField("mtu", "MTU（1280–65535，默认 9000）", FieldKind.NUMBER, required = true))) { value ->
+                    val mtu = value.getLong("mtu")
+                    require(mtu in NetworkSettings.MIN_MTU.toLong()..NetworkSettings.MAX_MTU.toLong()) { "MTU 必须在 1280–65535 之间" }
+                    networkPrefs.edit().putInt("mtu", mtu.toInt()).apply()
+                    toast("重新连接后生效"); render()
+                }
+            })
+        }
         val startOnBoot = networkPrefs.getBoolean("startOnBoot", false)
         card("启动与常驻", "开机自动连接使用已选配置，首次解锁后生效。始终开启 VPN 由 Android 系统管理，可在系统设置中启用。") {
             addView(button(if (startOnBoot) "开机自动连接 · 已开启" else "开机自动连接 · 未开启", startOnBoot) {
@@ -673,7 +688,6 @@ class MainActivity : Activity() {
                 }
             })
         }
-        card("网络说明", "接管 IPv4；启用 IPv6 后同时接管 IPv6 流量。实际 IPv6 直连能力取决于当前网络，代理访问取决于节点支持。")
         if (ClashVpnService.error.isNotEmpty()) card("最近的服务提示", ClashVpnService.error)
     }
     private fun selectRoutingApps(mode: String) {

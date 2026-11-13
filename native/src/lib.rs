@@ -23,6 +23,11 @@ static LAST_ERROR: Mutex<String> = Mutex::new(String::new());
 fn prepare(raw: &str, fd: Option<i32>, secret: &str) -> Result<String, String> {
     let mut config: Mapping = serde_yaml::from_str(raw).map_err(|e| e.to_string())?;
     config_editor::ensure_dns2(&mut config);
+    config.entry(Value::String("disable-keep-alive".into())).or_insert(Value::Bool(true));
+    let mtu = config.get(Value::String("tun".into()))
+        .and_then(|tun| tun.get("mtu")).and_then(Value::as_u64).unwrap_or(9000);
+    if !(1280..=65535).contains(&mtu) { return Err("MTU 必须在 1280–65535 之间".into()); }
+
     let ipv6 = config.get(Value::String("ipv6".into())).and_then(Value::as_bool).unwrap_or(false);
     let overrides = serde_json::json!({
         "external-controller": "127.0.0.1:19090", "secret": secret,
@@ -30,7 +35,7 @@ fn prepare(raw: &str, fd: Option<i32>, secret: &str) -> Result<String, String> {
         "external-controller-ipc": null, "routing-mark": null,
         "tun": {"enable": fd.is_some(), "device-id": format!("fd://{}", fd.unwrap_or(0)), "stack": "smoltcp",
             "gateway": "172.19.0.1/30", "gateway-v6": if ipv6 { Some("fdfe:dcba:9876::1/126") } else { None },
-            "mtu": 1500, "auto-route": false,
+            "mtu": mtu, "auto-route": false,
             "auto-detect-interface": false, "dns-hijack": ["any:53"]}
     });
     let overlay: Mapping = serde_yaml::from_value(serde_yaml::to_value(overrides).map_err(|e| e.to_string())?)
@@ -72,7 +77,8 @@ fn prepare(raw: &str, fd: Option<i32>, secret: &str) -> Result<String, String> {
     serde_yaml::to_string(&config).map_err(|e| e.to_string())
 }
 
-fn network_config(raw: &str, mode: &str) -> Result<String, String> {
+fn network_config(raw: &str, mode: &str, mtu: i32) -> Result<String, String> {
+    if !(1280..=65535).contains(&mtu) { return Err("MTU 必须在 1280–65535 之间".into()); }
     let mut config: Mapping = serde_yaml::from_str(raw).map_err(|e| e.to_string())?;
     config_editor::ensure_dns2(&mut config);
     let ipv6 = match mode {
@@ -86,6 +92,13 @@ fn network_config(raw: &str, mode: &str) -> Result<String, String> {
         _ => return Err("无效的 IPv6 设置".into()),
     };
     config.insert(Value::String("ipv6".into()), Value::Bool(ipv6));
+    let tun_key = Value::String("tun".into());
+    if !config.get(&tun_key).is_some_and(Value::is_mapping) {
+        config.insert(tun_key.clone(), Value::Mapping(Mapping::new()));
+    }
+    if let Some(tun) = config.get_mut(&tun_key).and_then(Value::as_mapping_mut) {
+        tun.insert(Value::String("mtu".into()), Value::Number((mtu as u64).into()));
+    }
     serde_json::to_string(&serde_json::json!({
         "ipv6": ipv6,
         "dns2": config.get(Value::String("dns2".into())),
@@ -95,12 +108,12 @@ fn network_config(raw: &str, mode: &str) -> Result<String, String> {
 
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_yk_clash_NativeCore_networkConfig(
-    mut env: JNIEnv, _this: JObject, config: JString, mode: JString,
+    mut env: JNIEnv, _this: JObject, config: JString, mode: JString, mtu: jni::sys::jint,
 ) -> jstring {
     let result = (|| -> Result<String, String> {
         let raw: String = env.get_string(&config).map_err(|e| e.to_string())?.into();
         let mode: String = env.get_string(&mode).map_err(|e| e.to_string())?.into();
-        network_config(&raw, &mode)
+        network_config(&raw, &mode, mtu)
     })();
     match result {
         Ok(value) => env.new_string(value).map(|s| s.into_raw()).unwrap_or(std::ptr::null_mut()),
@@ -312,13 +325,15 @@ mod tests {
             ("proxies: []", "profile", false), ("ipv6: false", "on", true),
             ("ipv6: true", "off", false),
         ] {
-            let network: serde_json::Value = serde_json::from_str(&network_config(raw, mode).unwrap()).unwrap();
+            let network: serde_json::Value = serde_json::from_str(&network_config(raw, mode, 9000).unwrap()).unwrap();
             assert_eq!(network["ipv6"], expected);
             let parsed: Value = serde_yaml::from_str(network["config"].as_str().unwrap()).unwrap();
             assert_eq!(parsed["ipv6"], expected);
+            assert_eq!(parsed["tun"]["mtu"], 9000);
         }
-        assert!(network_config("ipv6: nonsense", "profile").is_err());
-        assert!(network_config("{}", "invalid").is_err());
+        assert!(network_config("ipv6: nonsense", "profile", 9000).is_err());
+        assert!(network_config("{}", "invalid", 9000).is_err());
+        assert!(network_config("{}", "profile", 1000).is_err());
     }
 
     #[test]

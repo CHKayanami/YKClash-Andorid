@@ -9,10 +9,10 @@ object NativeCore {
     external fun alive(): Boolean
     external fun lastError(): String
     external fun groupOrder(config: String): String
-    external fun networkConfig(config: String, ipv6Mode: String): String
+    external fun networkConfig(config: String, ipv6Mode: String, mtu: Int): String
     external fun configDocument(config: String): String
     external fun encodeConfig(document: String): String
     external fun convertYamlMapping(value: String, toYaml: Boolean): String
     external fun validateGeodata(path: String, kind: String): String
-    external fun previewConfig(config: String, ipv6Mode: String): String
+    external fun previewConfig(config: String, ipv6Mode: String, mtu: Int): String
 }

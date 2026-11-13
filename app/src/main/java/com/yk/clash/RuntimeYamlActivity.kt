@@ -29,7 +29,7 @@ class RuntimeYamlActivity : Activity() {
                 val profile = store.selected() ?: error("请先导入并选择配置")
                 val merged = GlobalOverrideStore(this).resolve(store.read(profile))
                 val mode = getSharedPreferences("network", MODE_PRIVATE).getString("ipv6", "profile") ?: "profile"
-                YamlDisplay.format(NativeCore.previewConfig(merged, mode))
+                YamlDisplay.format(NativeCore.previewConfig(merged, mode, NetworkSettings.mtu(this)))
             }
             runOnUiThread {
                 if (isDestroyed || isFinishing) return@runOnUiThread

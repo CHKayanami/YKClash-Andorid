@@ -3,8 +3,8 @@ import java.util.Properties
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android") }
 val targetAbis = providers.gradleProperty("abis").orElse("arm64-v8a").get().split(",")
 require(targetAbis.all { it in setOf("arm64-v8a", "x86_64") })
-val apkVersionName = providers.gradleProperty("apkVersionName").orElse("0.1.0").get()
-val apkVersionCode = providers.gradleProperty("apkVersionCode").orElse("1").get().toInt()
+val apkVersionName = providers.gradleProperty("apkVersionName").orElse("0.1.1").get()
+val apkVersionCode = providers.gradleProperty("apkVersionCode").orElse("2").get().toInt()
 require(apkVersionName.isNotBlank() && apkVersionCode in 1..2100000000) { "Invalid APK version" }
 val signingFile = rootProject.file(".signing/release.properties")
 val signingProperties = Properties().apply {
